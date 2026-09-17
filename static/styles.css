@@ -1,0 +1,53 @@
+/* Custom styles for CarbonLoop */
+
+@layer utilities {
+  .tab-btn.active {
+    background-color: #059669;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  }
+  .tab-btn:not(.active) {
+    color: #94a3b8;
+  }
+  .tab-btn:not(.active):hover {
+    color: #ffffff;
+    background-color: #1e293b;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Code styling */
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background-color: rgba(15, 23, 42, 0.8);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  color: #34d399;
+  font-size: 0.85em;
+}
+
+/* Modal animation */
+#trace-modal, #activity-modal, #target-modal {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}

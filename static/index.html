@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarbonLoop — Closed-Loop Carbon Accounting & Reduction Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- TOP NOTIFICATION BANNER -->
+  <div id="demo-banner" class="bg-amber-950/70 border-b border-amber-600/40 px-4 py-1.5 text-xs text-amber-200 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="bg-amber-500/20 text-amber-300 font-mono px-2 py-0.5 rounded border border-amber-500/40 text-[10px] uppercase tracking-wider font-semibold">SYNTHETIC DEMONSTRATION DATASET</span>
+      <span>GreenTech Demo Pvt. Ltd. (Mumbai, 50 Employees, 12 Months Baseline). All calculations are 100% deterministic (CEA v20.0 + DESNZ 2024).</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="user-badge" class="font-mono text-slate-400">demo@greentech.in</span>
+      <button onclick="logoutOrSwitch()" class="text-amber-400 hover:text-amber-300 underline font-medium">Switch / Login</button>
+    </div>
+  </div>
+
+  <!-- NAVIGATION BAR -->
+  <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="repeat" class="w-5 h-5 text-slate-950 stroke-[2.5]"></i>
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-emerald-400 bg-clip-text text-transparent">CarbonLoop</span>
+          <span class="ml-2 text-[10px] font-mono bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded border border-slate-700">ES-02 VERIFIED</span>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800 text-sm">
+        <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard & Hotspots
+        </button>
+        <button onclick="switchTab('activities')" id="tab-btn-activities" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="list-checks" class="w-4 h-4"></i> Activity Log & Audit
+        </button>
+        <button onclick="switchTab('scenarios')" id="tab-btn-scenarios" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4"></i> Decarbonization Simulator
+        </button>
+        <button onclick="switchTab('targets')" id="tab-btn-targets" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="target" class="w-4 h-4"></i> Targets & SEBI BRSR
+        </button>
+        <button onclick="switchTab('ai')" id="tab-btn-ai" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i> AI Insights
+        </button>
+        <button onclick="switchTab('factors')" id="tab-btn-factors" class="tab-btn px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-2">
+          <i data-lucide="database" class="w-4 h-4"></i> Factor Registry
+        </button>
+      </nav>
+
+      <!-- ACTION BUTTON -->
+      <div class="flex items-center gap-2">
+        <button onclick="openActivityModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Log Activity
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ==================== TAB 1: DASHBOARD & HOTSPOTS ==================== -->
+    <section id="tab-dashboard" class="tab-content block space-y-6">
+      
+      <!-- KPI HEADER CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Total Footprint -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="text-xs text-slate-400 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span>Gross Annual Footprint</span>
+            <span class="bg-emerald-950 text-emerald-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-emerald-800">100% DETERMINISTIC</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-total-tonnes" class="text-3xl font-extrabold text-white">176.534</span>
+            <span class="text-sm font-semibold text-slate-400">t CO₂e</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1"><span id="kpi-total-kg">176,534.49</span> kg CO₂e verified total</p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span>Baseline Year: 2023</span>
+            <span class="text-emerald-400 cursor-pointer hover:underline" onclick="switchTab('activities')">View audit trace &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Scope 2 (Dominant Hotspot) -->
+        <div class="bg-slate-900 border border-rose-900/40 bg-gradient-to-b from-slate-900 to-rose-950/10 rounded-xl p-5 relative overflow-hidden group hover:border-rose-800/60 transition">
+          <div class="text-xs text-rose-300 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span>Scope 2 (Electricity)</span>
+            <span class="bg-rose-950/80 text-rose-300 text-[10px] font-mono px-1.5 py-0.5 rounded border border-rose-800">PRIMARY HOTSPOT</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-scope2-tonnes" class="text-3xl font-extrabold text-rose-200">122.364</span>
+            <span class="text-sm font-semibold text-rose-300">t CO₂e</span>
+          </div>
+          <p class="text-xs text-rose-400/80 mt-1"><span id="kpi-scope2-pct">69.3%</span> of organizational footprint</p>
+          <div class="mt-3 pt-3 border-t border-rose-900/30 flex items-center justify-between text-xs text-slate-400">
+            <span>CEA Grid EF: 0.727 kg/kWh</span>
+            <span class="text-rose-400 cursor-pointer hover:underline" onclick="switchTab('scenarios')">Simulate solar &rarr;</span>
+          </div>
+        </div>
+
+        <!-- Scope 3 Value Chain -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="text-xs text-slate-400 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span>Scope 3 (Named Cats 5, 6, 7)</span>
+            <span class="bg-slate-800 text-slate-300 text-[10px] font-mono px-1.5 py-0.5 rounded">COMMUTE & TRAVEL</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-scope3-tonnes" class="text-3xl font-extrabold text-white">40.057</span>
+            <span class="text-sm font-semibold text-slate-400">t CO₂e</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1"><span id="kpi-scope3-pct">22.7%</span> of organizational footprint</p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span>Scope 1: 14.113 t (8.0%)</span>
+            <span class="text-slate-400 font-mono">DESNZ 2024</span>
+          </div>
+        </div>
+
+        <!-- Per Employee Intensity -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group hover:border-slate-700 transition">
+          <div class="text-xs text-slate-400 font-medium uppercase tracking-wider flex items-center justify-between">
+            <span>SEBI BRSR Intensity Ratio</span>
+            <span class="bg-blue-950 text-blue-400 text-[10px] font-mono px-1.5 py-0.5 rounded border border-blue-900">BRSR CORE</span>
+          </div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpi-intensity-employee" class="text-3xl font-extrabold text-white">3.531</span>
+            <span class="text-sm font-semibold text-slate-400">t / emp</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1"><span id="kpi-intensity-kg">3,530.69</span> kg CO₂e / employee (50 staff)</p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <span>Facility: 11.77 kg/sq ft</span>
+            <span class="text-emerald-400 cursor-pointer hover:underline" onclick="switchTab('targets')">View target &rarr;</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CHARTS ROW: MONTHLY TREND + SCOPE BREAKDOWN -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Monthly Trend Chart (2 Cols) -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-4 h-4 text-emerald-400"></i> Monthly Emissions Trajectory (2023)
+              </h3>
+              <p class="text-xs text-slate-400">Measured seasonal variance with HVAC summer peak (April–June) in Mumbai</p>
+            </div>
+            <span class="text-[11px] font-mono bg-slate-800 px-2 py-1 rounded text-slate-300 border border-slate-700">12 MONTHS</span>
+          </div>
+          <div class="relative flex-1 min-h-[280px]">
+            <canvas id="monthlyTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Scope Breakdown Chart (1 Col) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-base text-white flex items-center gap-2">
+                <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i> Scope Distribution
+              </h3>
+              <p class="text-xs text-slate-400">Location-based GHG Protocol inventory</p>
+            </div>
+            <span class="text-[11px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-900">VERIFIED</span>
+          </div>
+          <div class="relative flex-1 min-h-[220px] flex items-center justify-center">
+            <canvas id="scopeDonutChart"></canvas>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Scope 1 (Direct DG/Fleet/LPG)</span>
+              <span class="font-mono font-semibold text-slate-200">14.11 t (8.0%)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Scope 2 (Grid Electricity)</span>
+              <span class="font-mono font-semibold text-rose-300">122.36 t (69.3%)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> Scope 3 (Commute/Travel/Waste)</span>
+              <span class="font-mono font-semibold text-sky-300">40.06 t (22.7%)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- HOTSPOT ANALYSIS CALLOUT -->
+      <div class="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-900/50 rounded-xl p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="bg-rose-500/20 text-rose-400 border border-rose-500/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase font-mono">Verified Hotspot Identified</span>
+              <h4 class="font-bold text-lg text-white">Purchased Grid Electricity Accounts for 69.3% of Total Carbon Liability</h4>
+            </div>
+            <p class="text-sm text-slate-300 max-w-3xl">
+              Applying the official Central Electricity Authority (CEA) Version 20.0 grid emission factor (<strong>0.7275 kg CO₂e/kWh</strong>),
+              168,200 kWh of commercial power consumed in Mumbai generates <strong>122.36 t CO₂e</strong>. 
+              The seasonal peak occurs during May ($13,240\text{ kg CO}_2\text{e}$) driven by cooling load.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <button onclick="switchTab('scenarios')" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs px-4 py-2.5 rounded-lg shadow-lg shadow-rose-900/30 transition flex items-center gap-2">
+              <i data-lucide="sliders" class="w-4 h-4"></i> Simulate Decarbonization
+            </button>
+            <button onclick="switchTab('ai')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-4 py-2.5 rounded-lg border border-slate-700 transition flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-emerald-400"></i> AI Hotspot Narration
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: ACTIVITY LOG & AUDIT ==================== -->
+    <section id="tab-activities" class="tab-content hidden space-y-6">
+      
+      <!-- Filter Bar -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+        <div>
+          <h3 class="font-bold text-base text-white">Activity Records & Verification Registry</h3>
+          <p class="text-xs text-slate-400">Every record is clickable back to its verified emission factor, source URL, and calculation formula.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="activity-scope-filter" onchange="filterActivities()" class="bg-slate-950 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2">
+            <option value="">All Scopes</option>
+            <option value="Scope 1">Scope 1 (Direct)</option>
+            <option value="Scope 2">Scope 2 (Electricity)</option>
+            <option value="Scope 3">Scope 3 (Value Chain)</option>
+          </select>
+          <button onclick="openActivityModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Record
+          </button>
+        </div>
+      </div>
+
+      <!-- Activities Table -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono uppercase text-[11px]">
+              <tr>
+                <th class="py-3 px-4">Date / Month</th>
+                <th class="py-3 px-4">Activity & Category</th>
+                <th class="py-3 px-4">Scope</th>
+                <th class="py-3 px-4 text-right">Input Activity</th>
+                <th class="py-3 px-4 text-right">Factor Value</th>
+                <th class="py-3 px-4 text-right">Emissions (kg CO₂e)</th>
+                <th class="py-3 px-4 text-right">Emissions (t CO₂e)</th>
+                <th class="py-3 px-4 text-center">Data Quality</th>
+                <th class="py-3 px-4 text-center">Audit Trace</th>
+              </tr>
+            </thead>
+            <tbody id="activities-table-body" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Loaded via JavaScript -->
+              <tr><td colspan="9" class="py-8 text-center text-slate-500">Loading activities...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: DECARBONIZATION SIMULATOR ==================== -->
+    <section id="tab-scenarios" class="tab-content hidden space-y-6">
+      
+      <!-- Warning Banner -->
+      <div class="bg-indigo-950/50 border border-indigo-600/40 rounded-xl p-4 flex items-start gap-3">
+        <i data-lucide="info" class="w-5 h-5 text-indigo-400 shrink-0 mt-0.5"></i>
+        <div>
+          <h4 class="font-bold text-sm text-indigo-200">Decarbonization Scenario Modeling Engine</h4>
+          <p class="text-xs text-indigo-300/80 mt-0.5">
+            All projected reductions are labeled <strong>SIMULATION/PROJECTION</strong> and computed deterministically against your measured baseline.
+            No historical actuals are modified.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Controls Column (1 Col) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5">
+          <h3 class="font-bold text-base text-white border-b border-slate-800 pb-3 flex items-center justify-between">
+            <span>Intervention Parameters</span>
+            <button onclick="resetScenarioSliders()" class="text-xs font-normal text-slate-400 hover:text-white">Reset</button>
+          </h3>
+
+          <!-- Slider 1: Rooftop Solar PV -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Rooftop Solar PV Share (%)</span>
+              <span id="val-solar" class="font-mono text-emerald-400 font-bold">40%</span>
+            </div>
+            <input type="range" id="slider-solar" min="0" max="100" value="40" oninput="runLiveSimulation()" class="w-full accent-emerald-500 bg-slate-950 rounded cursor-pointer">
+            <p class="text-[11px] text-slate-500">Displaces grid electricity (CEA v20.0: 0.727 kg/kWh)</p>
+          </div>
+
+          <!-- Slider 2: HVAC Optimization -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">HVAC Thermostat Setpoint (°C)</span>
+              <span id="val-hvac" class="font-mono text-emerald-400 font-bold">+2.0 °C</span>
+            </div>
+            <input type="range" id="slider-hvac" min="0" max="4" step="0.5" value="2.0" oninput="runLiveSimulation()" class="w-full accent-emerald-500 bg-slate-950 rounded cursor-pointer">
+            <p class="text-[11px] text-slate-500">4% cooling electricity saving per °C thermostat offset</p>
+          </div>
+
+          <!-- Slider 3: Transit Shift -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Transit Shift (Metro / Bus)</span>
+              <span id="val-transit" class="font-mono text-emerald-400 font-bold">30%</span>
+            </div>
+            <input type="range" id="slider-transit" min="0" max="100" value="30" oninput="runLiveSimulation()" class="w-full accent-emerald-500 bg-slate-950 rounded cursor-pointer">
+            <p class="text-[11px] text-slate-500">Shifts solo car and two-wheeler commuting to rail/bus</p>
+          </div>
+
+          <!-- Slider 4: Flight Virtual Meetings -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Virtual Meeting Travel Reduction</span>
+              <span id="val-flights" class="font-mono text-emerald-400 font-bold">25%</span>
+            </div>
+            <input type="range" id="slider-flights" min="0" max="100" value="25" oninput="runLiveSimulation()" class="w-full accent-emerald-500 bg-slate-950 rounded cursor-pointer">
+            <p class="text-[11px] text-slate-500">Reduces domestic flights via virtual conferences</p>
+          </div>
+
+          <!-- Slider 5: Waste Composting -->
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Waste Composting Diversion</span>
+              <span id="val-waste" class="font-mono text-emerald-400 font-bold">50%</span>
+            </div>
+            <input type="range" id="slider-waste" min="0" max="100" value="50" oninput="runLiveSimulation()" class="w-full accent-emerald-500 bg-slate-950 rounded cursor-pointer">
+            <p class="text-[11px] text-slate-500">Diverts office organic waste from landfill</p>
+          </div>
+
+        </div>
+
+        <!-- Simulation Results Column (2 Cols) -->
+        <div class="lg:col-span-2 space-y-5">
+          
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <span class="text-xs text-slate-400 font-medium">Measured Baseline</span>
+              <div class="text-2xl font-bold text-white mt-1"><span id="sim-base-tonnes">176.534</span> t</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Historical measured actuals</p>
+            </div>
+            <div class="bg-slate-900 border border-emerald-900/60 bg-emerald-950/20 rounded-xl p-4">
+              <span class="text-xs text-emerald-400 font-medium flex items-center justify-between">
+                <span>Projected Reduction</span>
+                <span class="text-[10px] font-mono bg-emerald-900/80 px-1 rounded">SIMULATION</span>
+              </span>
+              <div class="text-2xl font-bold text-emerald-300 mt-1">-<span id="sim-reduc-tonnes">58.450</span> t</div>
+              <p class="text-[11px] text-emerald-400/80 mt-0.5"><span id="sim-reduc-pct">33.1%</span> potential reduction</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <span class="text-xs text-slate-400 font-medium">Projected Residual</span>
+              <div class="text-2xl font-bold text-white mt-1"><span id="sim-resid-tonnes">118.084</span> t</div>
+              <p class="text-[11px] text-slate-500 mt-0.5">Estimated residual carbon</p>
+            </div>
+          </div>
+
+          <!-- Comparison Chart -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <h4 class="font-bold text-sm text-white mb-3 flex items-center gap-2">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i> Baseline vs. Projected Decarbonization Comparison
+            </h4>
+            <div class="relative min-h-[220px]">
+              <canvas id="scenarioCompareChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Breakdown of Reductions by Measure -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <h4 class="font-bold text-sm text-white mb-3">Projected Impact Breakdown by Intervention</h4>
+            <div id="sim-breakdown-list" class="space-y-2 text-xs">
+              <!-- Filled via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 4: TARGETS & SEBI BRSR ==================== -->
+    <section id="tab-targets" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="font-bold text-lg text-white">Decarbonization Target Progress</h3>
+            <p class="text-xs text-slate-400">Tracking progress toward your organization's formal reduction commitment.</p>
+          </div>
+          <button onclick="openTargetModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Set New Target
+          </button>
+        </div>
+
+        <div id="target-card-container" class="space-y-4">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- SEBI BRSR Core Disclosure Matrix -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-mono bg-blue-950 text-blue-300 px-2 py-0.5 rounded border border-blue-800">SEBI MANDATE ALIGNED</span>
+            <h3 class="font-bold text-lg text-white mt-1">BRSR Core Environmental Disclosure Summary</h3>
+            <p class="text-xs text-slate-400">Standardized intensity metrics aligned with SEBI circular SEBI/HO/CFD/CFD-SEC-2/P/CIR/2023/122.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-800 rounded-lg overflow-hidden">
+            <thead class="bg-slate-950 text-slate-400 font-mono uppercase text-[11px]">
+              <tr>
+                <th class="py-3 px-4">Indicator</th>
+                <th class="py-3 px-4">Parameter</th>
+                <th class="py-3 px-4 text-right">FY 2023–24 (Baseline)</th>
+                <th class="py-3 px-4">Unit</th>
+                <th class="py-3 px-4">Assurance Standard</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td class="py-2.5 px-4 font-semibold">Scope 1 Emissions</td>
+                <td class="py-2.5 px-4">Direct GHG emissions (DG sets, fleet petrol, LPG)</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-white">14.113</td>
+                <td class="py-2.5 px-4 text-slate-400">t CO₂e</td>
+                <td class="py-2.5 px-4 font-mono text-emerald-400 text-[11px]">Reasonable Assurance Ready</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-semibold">Scope 2 Emissions</td>
+                <td class="py-2.5 px-4">Location-based grid electricity (CEA v20.0)</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-white">122.364</td>
+                <td class="py-2.5 px-4 text-slate-400">t CO₂e</td>
+                <td class="py-2.5 px-4 font-mono text-emerald-400 text-[11px]">Reasonable Assurance Ready</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-semibold">Scope 3 Emissions</td>
+                <td class="py-2.5 px-4">Categories 5 (Waste), 6 (Business Travel), 7 (Commute)</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-white">40.057</td>
+                <td class="py-2.5 px-4 text-slate-400">t CO₂e</td>
+                <td class="py-2.5 px-4 font-mono text-sky-400 text-[11px]">Leadership Indicator</td>
+              </tr>
+              <tr class="bg-slate-950/40">
+                <td class="py-2.5 px-4 font-semibold text-emerald-300">Total Gross Emissions</td>
+                <td class="py-2.5 px-4">Scope 1 + Scope 2 + Named Scope 3</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-emerald-400">176.534</td>
+                <td class="py-2.5 px-4 text-slate-400">t CO₂e</td>
+                <td class="py-2.5 px-4 font-mono text-emerald-400 text-[11px]">Audit-Traceable (5-Tuple)</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-semibold">GHG Intensity per Employee</td>
+                <td class="py-2.5 px-4">Total emissions divided by full-time staff (50)</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-white">3.531</td>
+                <td class="py-2.5 px-4 text-slate-400">t CO₂e / emp</td>
+                <td class="py-2.5 px-4 font-mono text-slate-400 text-[11px]">Mandatory BRSR Ratio</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-4 font-semibold">Operational Area Intensity</td>
+                <td class="py-2.5 px-4">Total emissions divided by facility floor area</td>
+                <td class="py-2.5 px-4 text-right font-mono font-bold text-white">11.769</td>
+                <td class="py-2.5 px-4 text-slate-400">kg CO₂e / sq ft</td>
+                <td class="py-2.5 px-4 font-mono text-slate-400 text-[11px]">BEE Commercial Benchmark</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 5: AI INSIGHTS ==================== -->
+    <section id="tab-ai" class="tab-content hidden space-y-6">
+      
+      <!-- AI Disclaimer -->
+      <div class="bg-slate-900 border border-emerald-900/40 rounded-xl p-5 flex items-start justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
+            <h3 class="font-bold text-base text-white">Strict Architectural AI Boundary Enforced</h3>
+          </div>
+          <p class="text-xs text-slate-300">
+            Pipeline: <code>Raw Data &rarr; Schema Validation &rarr; Deterministic Calculation &rarr; Verified JSON &rarr; AI</code>.<br>
+            The generative layer receives only pre-computed, verified numbers as read-only context. It is architecturally prevented from calculating, modifying, or hallucinating footprint figures.
+          </p>
+        </div>
+        <button onclick="fetchAINarrative()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition flex items-center gap-2 shrink-0 shadow-md shadow-emerald-900/20">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i> Regenerate Analysis
+        </button>
+      </div>
+
+      <div id="ai-loading" class="hidden py-12 text-center text-slate-400 space-y-2">
+        <i data-lucide="loader" class="w-8 h-8 text-emerald-400 animate-spin mx-auto"></i>
+        <p class="text-xs font-mono">Synthesizing technical explanation from verified calculations...</p>
+      </div>
+
+      <div id="ai-results-container" class="space-y-6">
+        
+        <!-- Executive Summary -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-sm text-emerald-400 uppercase tracking-wider flex items-center gap-2 font-mono">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Executive Inventory Summary
+            </h4>
+            <span id="ai-source-badge" class="text-[10px] font-mono text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">Deterministic Knowledge Core</span>
+          </div>
+          <p id="ai-exec-summary" class="text-sm text-slate-200 leading-relaxed font-sans"></p>
+        </div>
+
+        <!-- Hotspot Narration -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-2">
+          <h4 class="font-bold text-sm text-rose-400 uppercase tracking-wider flex items-center gap-2 font-mono">
+            <i data-lucide="flame" class="w-4 h-4"></i> Operational Hotspot Narration
+          </h4>
+          <p id="ai-hotspot-narration" class="text-sm text-slate-200 leading-relaxed font-sans"></p>
+        </div>
+
+        <!-- Regulatory Context -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-2">
+          <h4 class="font-bold text-sm text-blue-400 uppercase tracking-wider flex items-center gap-2 font-mono">
+            <i data-lucide="scale" class="w-4 h-4"></i> Regulatory & Assurance Alignment (SEBI BRSR Core)
+          </h4>
+          <p id="ai-regulatory-context" class="text-sm text-slate-200 leading-relaxed font-sans"></p>
+        </div>
+
+        <!-- Recommended Decarbonization Actions -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+          <h4 class="font-bold text-sm text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Recommended Decarbonization Roadmap
+          </h4>
+          <div id="ai-actions-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 6: FACTOR REGISTRY ==================== -->
+    <section id="tab-factors" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-base text-white">Verified Official Emission Factors Registry</h3>
+          <p class="text-xs text-slate-400">Every emission factor is extracted from official primary databases verified during Phase 1.</p>
+        </div>
+        <span class="text-xs font-mono text-emerald-400 bg-slate-950 px-3 py-1.5 rounded border border-slate-800">CEA v20.0 + DESNZ 2024</span>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono uppercase text-[11px]">
+              <tr>
+                <th class="py-3 px-4">Factor ID</th>
+                <th class="py-3 px-4">Activity Name</th>
+                <th class="py-3 px-4">Scope</th>
+                <th class="py-3 px-4 text-right">Coefficient (kg CO₂e)</th>
+                <th class="py-3 px-4">Unit</th>
+                <th class="py-3 px-4">Source Authority</th>
+                <th class="py-3 px-4">Official Gazette / Source</th>
+                <th class="py-3 px-4 text-center">Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="factors-table-body" class="divide-y divide-slate-800/60 font-sans">
+              <!-- Loaded via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== CLICK-TO-TRACE AUDIT MODAL ==================== -->
+  <div id="trace-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs">
+            &radic;
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-white">Scientific Calculation Provenance (Click-to-Trace)</h3>
+            <p class="text-xs text-slate-400">Complete 5-Tuple Traceability for Third-Party ESG Audit</p>
+          </div>
+        </div>
+        <button onclick="closeTraceModal()" class="text-slate-400 hover:text-white text-lg font-mono">&times;</button>
+      </div>
+
+      <div id="trace-modal-body" class="space-y-4 text-xs">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="closeTraceModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-xs font-semibold transition">
+          Close Audit Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LOG ACTIVITY MODAL ==================== -->
+  <div id="activity-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> Log Activity Record
+        </h3>
+        <button onclick="closeActivityModal()" class="text-slate-400 hover:text-white text-lg font-mono">&times;</button>
+      </div>
+
+      <form id="activity-form" onsubmit="handleActivitySubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Activity Date / Month</label>
+          <input type="month" id="form-act-date" required value="2024-03" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Emission Category</label>
+          <select id="form-act-type" onchange="updateFormUnits()" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="ELEC_IN_GRID">Grid Electricity (Scope 2, CEA v20.0)</option>
+            <option value="FUEL_DIESEL_L">Diesel Fuel - Generator / Fleet (Scope 1)</option>
+            <option value="FUEL_PETROL_L">Petrol / Gasoline - Fleet (Scope 1)</option>
+            <option value="FUEL_LPG_KG">Commercial LPG - Canteen (Scope 1)</option>
+            <option value="FUEL_CNG_KG">Compressed Natural Gas - CNG (Scope 1)</option>
+            <option value="TRANSIT_BUS_PKM">Employee Commuting - Local Bus (Scope 3, Cat 7)</option>
+            <option value="TRANSIT_RAIL_PKM">Employee Commuting - Rail / Metro (Scope 3, Cat 7)</option>
+            <option value="VEHICLE_MOTO_KM">Employee Commuting - Two-Wheeler (Scope 3, Cat 7)</option>
+            <option value="VEHICLE_CAR_KM">Employee Commuting - Passenger Car (Scope 3, Cat 7)</option>
+            <option value="FLIGHT_DOMESTIC_PKM">Business Travel - Domestic Flight with RF (Scope 3, Cat 6)</option>
+            <option value="WASTE_LANDFILL_KG">Commercial Waste to Landfill (Scope 3, Cat 5)</option>
+            <option value="WATER_MAINS_M3">Mains Water Supply & Treatment (Scope 3)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Quantity</label>
+            <input type="number" step="any" min="0" id="form-act-val" required placeholder="e.g. 1000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-medium mb-1">Unit</label>
+            <input type="text" id="form-act-unit" readonly value="kWh" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Data Quality Tag</label>
+          <select id="form-act-quality" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <option value="MEASURED">MEASURED (Direct Utility / Meter Bill)</option>
+            <option value="USER_ENTERED">USER_ENTERED (Self-reported invoice)</option>
+            <option value="ESTIMATE">ESTIMATE (Sampled / Derived)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Reference Notes (Audit Trail)</label>
+          <input type="text" id="form-act-notes" placeholder="e.g. Adani Electricity Bill #9842" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button type="button" onclick="closeActivityModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg text-xs transition">Calculate & Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== TARGET MODAL ==================== -->
+  <div id="target-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-base text-white">Set Decarbonization Target</h3>
+        <button onclick="closeTargetModal()" class="text-slate-400 hover:text-white text-lg font-mono">&times;</button>
+      </div>
+      <form id="target-form" onsubmit="handleTargetSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Target Name</label>
+          <input type="text" id="form-target-name" required value="SBTi-Aligned 2030 Commitment" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Target Year</label>
+          <input type="number" id="form-target-year" required min="2025" max="2050" value="2030" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-medium mb-1">Target Reduction (% against Baseline)</label>
+          <input type="number" id="form-target-pct" required min="1" max="100" value="30" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+        </div>
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button type="button" onclick="closeTargetModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2 rounded-lg text-xs transition">Set Target</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 border-t border-slate-800/80 py-4 px-4 text-center text-xs text-slate-500">
+    <p>CarbonLoop &bull; ES-02 Carbon Accounting & Reduction Engine &bull; Built in strict compliance with GHG Protocol Corporate Standard & SEBI BRSR Core.</p>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

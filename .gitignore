@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# SQLite databases
+*.db
+*.sqlite3
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
