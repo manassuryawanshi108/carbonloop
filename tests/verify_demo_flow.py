@@ -1,20 +1,60 @@
 """
 Automated Live End-to-End Verification of Demo Flow.
-Executes every step of Step 14 over HTTP against the running CarbonLoop server:
+Executes every step of the audit pipeline:
 Create/Login -> Enter Activity -> Calculate Footprint -> Scope Breakdown -> Hotspot -> AI Insight -> Reduction Scenario -> Target -> Progress -> Traceability.
+
+Supports both live running Uvicorn server and standalone in-process TestClient.
 """
 
-import requests
 import sys
+from pathlib import Path
+import requests
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 BASE_URL = "http://127.0.0.1:8000"
 
+class VerificationClient:
+    def __init__(self, base_url: str = BASE_URL):
+        self.base_url = base_url
+        self.use_live = False
+        try:
+            r = requests.get(f"{base_url}/health", timeout=0.8)
+            if r.status_code == 200:
+                self.use_live = True
+                print(f"[Client Mode] Connected to live server at {base_url}")
+        except Exception:
+            pass
+
+        if not self.use_live:
+            from fastapi.testclient import TestClient
+            from app.main import app
+            self.test_client = TestClient(app)
+            print("[Client Mode] In-process FastAPI TestClient active (no external server required)")
+
+    def post(self, path: str, json=None, headers=None):
+        if self.use_live:
+            url = path if path.startswith("http") else f"{self.base_url}{path}"
+            return requests.post(url, json=json, headers=headers)
+        rel_path = path.replace(self.base_url, "")
+        return self.test_client.post(rel_path, json=json, headers=headers)
+
+    def get(self, path: str, headers=None):
+        if self.use_live:
+            url = path if path.startswith("http") else f"{self.base_url}{path}"
+            return requests.get(url, headers=headers)
+        rel_path = path.replace(self.base_url, "")
+        return self.test_client.get(rel_path, headers=headers)
+
 def test_full_demo_flow():
-    print("=== STARTING LIVE END-TO-END DEMO FLOW VERIFICATION ===")
+    print("=== STARTING END-TO-END DEMO FLOW VERIFICATION ===")
+    client = VerificationClient()
 
     # 1. Login
     print("\n--- STEP 1: Login with Demo User ---")
-    login_res = requests.post(f"{BASE_URL}/api/auth/login", json={
+    login_res = client.post(f"{BASE_URL}/api/auth/login", json={
         "email": "demo@greentech.in",
         "password": "demo1234"
     })
@@ -27,7 +67,7 @@ def test_full_demo_flow():
 
     # 2. Enter Activity Data
     print("\n--- STEP 2: Enter Activity Data (New Grid Electricity Meter Reading) ---")
-    act_res = requests.post(f"{BASE_URL}/api/activities", headers=headers, json={
+    act_res = client.post(f"{BASE_URL}/api/activities", headers=headers, json={
         "activity_date": "2024-01",
         "activity_type": "ELEC_IN_GRID",
         "activity_value": 15000.0,
@@ -46,7 +86,7 @@ def test_full_demo_flow():
 
     # 3. Calculate Footprint
     print("\n--- STEP 3: Calculate Total Footprint ---")
-    summary_res = requests.get(f"{BASE_URL}/api/footprint/summary", headers=headers)
+    summary_res = client.get(f"{BASE_URL}/api/footprint/summary", headers=headers)
     assert summary_res.status_code == 200
     summary = summary_res.json()
     print(f"Total Gross Footprint: {summary['total_co2e_tonnes']} t CO2e ({summary['total_co2e_kg']} kg CO2e)")
@@ -67,7 +107,7 @@ def test_full_demo_flow():
 
     # 6. Generate AI Insight
     print("\n--- STEP 6: Generate AI Narrative & Action Roadmap ---")
-    ai_res = requests.post(f"{BASE_URL}/api/ai/narrative", headers=headers)
+    ai_res = client.post(f"{BASE_URL}/api/ai/narrative", headers=headers)
     assert ai_res.status_code == 200
     ai_data = ai_res.json()
     print(f"AI Narrative Source: {ai_data['source']}")
@@ -79,7 +119,7 @@ def test_full_demo_flow():
 
     # 7. Run Reduction Scenario
     print("\n--- STEP 7: Run Reduction Scenario Simulation ---")
-    scenario_res = requests.post(f"{BASE_URL}/api/scenarios/simulate", headers=headers, json={
+    scenario_res = client.post(f"{BASE_URL}/api/scenarios/simulate", headers=headers, json={
         "solar_share_pct": 40.0,
         "hvac_temp_offset_c": 2.0,
         "transit_shift_pct": 30.0,
@@ -96,7 +136,7 @@ def test_full_demo_flow():
 
     # 8. Set Target
     print("\n--- STEP 8: Set Decarbonization Target ---")
-    target_res = requests.post(f"{BASE_URL}/api/targets", headers=headers, json={
+    target_res = client.post(f"{BASE_URL}/api/targets", headers=headers, json={
         "target_name": "SBTi Net-Zero 2030 Commitment",
         "target_year": 2030,
         "target_reduction_pct": 30.0
@@ -107,7 +147,7 @@ def test_full_demo_flow():
 
     # 9. View Progress
     print("\n--- STEP 9: View Target Distance & Progress ---")
-    targets_list_res = requests.get(f"{BASE_URL}/api/targets", headers=headers)
+    targets_list_res = client.get(f"{BASE_URL}/api/targets", headers=headers)
     assert targets_list_res.status_code == 200
     targets = targets_list_res.json()
     print(f"Active Targets: {len(targets)}")
@@ -116,7 +156,7 @@ def test_full_demo_flow():
 
     # 10. Click-to-Trace Provenance
     print("\n--- STEP 10: Click-to-Trace Audit Provenance ---")
-    trace_res = requests.get(f"{BASE_URL}/api/activities/{new_act_id}/trace", headers=headers)
+    trace_res = client.get(f"{BASE_URL}/api/activities/{new_act_id}/trace", headers=headers)
     assert trace_res.status_code == 200
     trace = trace_res.json()
     print(f"Activity Input: {trace['raw_input']['value']} {trace['raw_input']['unit']}")

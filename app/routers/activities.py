@@ -99,7 +99,8 @@ def create_activity(req: ActivityCreate, token_data: dict = Depends(get_current_
 def list_activities(
     scope: Optional[str] = None,
     month: Optional[str] = None,
-    limit: int = 100,
+    search: Optional[str] = None,
+    limit: int = 500,
     token_data: dict = Depends(get_current_user_token)
 ):
     org_id = token_data["org_id"]
@@ -122,8 +123,12 @@ def list_activities(
     if month:
         query += " AND a.activity_date LIKE ?"
         params.append(f"{month}%")
+    if search:
+        query += " AND (a.activity_type LIKE ? OR a.category LIKE ? OR a.notes LIKE ? OR a.activity_date LIKE ?)"
+        term = f"%{search.strip()}%"
+        params.extend([term, term, term, term])
 
-    query += " ORDER BY a.activity_date DESC LIMIT ?"
+    query += " ORDER BY a.activity_date DESC, a.created_at DESC LIMIT ?"
     params.append(limit)
 
     cursor.execute(query, params)
